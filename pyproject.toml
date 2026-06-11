@@ -1,0 +1,24 @@
+# Packaging metadata for the registry.comfy.org Comfy Registry.
+# Field layout follows https://docs.comfy.org/registry/specifications
+
+[project]
+name = "comfyui-trellis-hicache"
+description = "Training-free TRELLIS image-to-3D acceleration: forecast the flow-matching velocity on skipped DiT steps (HiCache Hermite / HiCache++ DMD, via hicache-pp) across both the sparse-structure and SLaT stages. ~2x faster, near-lossless. Drop between the TRELLIS loader and sampler."
+version = "0.1.0"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+dependencies = ["hicache-pp>=1.1.0"]
+classifiers = ["Development Status :: 4 - Beta"]
+
+[project.urls]
+Repository = "https://github.com/Archerkattri/ComfyUI-TRELLIS-HiCache"
+BugTracker = "https://github.com/Archerkattri/ComfyUI-TRELLIS-HiCache/issues"
+
+[tool.comfy]
+PublisherId = "archerkattri"
+DisplayName = "ComfyUI-TRELLIS-HiCache"
+Icon = ""
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+testpaths = ["tests"]
