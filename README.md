@@ -1,3 +1,5 @@
+<p align="center"><img src="icon.png" alt="ComfyUI-TRELLIS-HiCache" width="640"></p>
+
 # ComfyUI-TRELLIS-HiCache
 
 <p>
