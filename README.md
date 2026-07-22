@@ -1,5 +1,12 @@
 # ComfyUI-TRELLIS-HiCache
 
+<p>
+  <a href="https://github.com/Archerkattri/ComfyUI-TRELLIS-HiCache/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Archerkattri/ComfyUI-TRELLIS-HiCache?color=1f6feb"></a>
+  <a href="https://registry.comfy.org/publishers/archerkattri/nodes/comfyui-trellis-hicache"><img alt="Comfy Registry" src="https://img.shields.io/badge/Comfy%20Registry-comfyui-trellis-hicache-4b8bbe"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Archerkattri/ComfyUI-TRELLIS-HiCache?color=0d9488"></a>
+</p>
+
+
 Training-free acceleration for **TRELLIS** image-to-3D in ComfyUI. It forecasts
 the flow-matching velocity on skipped DiT steps instead of running the
 transformer, on both TRELLIS stages (sparse-structure and SLaT), via the
