@@ -4,7 +4,8 @@
 [project]
 name = "comfyui-trellis-hicache"
 description = "Training-free TRELLIS image-to-3D acceleration: forecast the flow-matching velocity on skipped DiT steps (HiCache Hermite / HiCache++ DMD, via hicache-pp) across both the sparse-structure and SLaT stages. ~2x faster, near-lossless. Drop between the TRELLIS loader and sampler."
-version = "0.1.1"
+version = "0.1.2"
+keywords = ["comfyui", "diffusion-acceleration", "caching", "training-free", "trellis", "image-to-3d"]
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 dependencies = ["hicache-pp>=1.1.0"]
