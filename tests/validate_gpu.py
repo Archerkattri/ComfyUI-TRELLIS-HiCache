@@ -44,16 +44,20 @@ def main():
 
     # ---- stock baseline ----
     import torch
-    torch.cuda.synchronize(); t0 = time.time()
+    torch.cuda.synchronize()
+    t0 = time.time()
     out_stock = pipe.run(img, **run_kw)
-    torch.cuda.synchronize(); t_stock = time.time() - t0
+    torch.cuda.synchronize()
+    t_stock = time.time() - t0
     n_gs_stock = int(out_stock["gaussian"][0].get_xyz.shape[0]) if hasattr(out_stock["gaussian"][0], "get_xyz") else -1
 
     # ---- patched ----
     patched = apply_hicache(pipe, method=args.method, interval=args.interval, stages=args.stages)
-    torch.cuda.synchronize(); t0 = time.time()
+    torch.cuda.synchronize()
+    t0 = time.time()
     out_fast = patched.run(img, **run_kw)
-    torch.cuda.synchronize(); t_fast = time.time() - t0
+    torch.cuda.synchronize()
+    t_fast = time.time() - t0
     n_gs_fast = int(out_fast["gaussian"][0].get_xyz.shape[0]) if hasattr(out_fast["gaussian"][0], "get_xyz") else -1
 
     # ---- geometry fidelity: symmetric Chamfer between stock & hicache gaussian
