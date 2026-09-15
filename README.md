@@ -20,6 +20,11 @@ Pairs with [smthemex/ComfyUI_TRELLIS](https://github.com/smthemex/ComfyUI_TRELLI
 [ComfyUI-HiCache](https://github.com/Archerkattri/ComfyUI-HiCache) for Hunyuan3D.
 
 ## What it does
+## Architecture at a glance
+
+![ComfyUI-TRELLIS-HiCache architecture](docs/flow.svg)
+
+The integration applies the same forecast boundary independently to TRELLIS sparse-structure and SLaT stages.
 
 TRELLIS samples each stage with a flow-Euler loop that calls a DiT once (or twice,
 under classifier-free guidance) per step. **TRELLIS HiCache Accelerate** replaces
