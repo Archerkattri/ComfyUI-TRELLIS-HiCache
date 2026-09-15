@@ -50,6 +50,10 @@ def test_validate_config_rejects_bad_params():
         validate_config("hermite", 0, 2, 1, 0.5, 5)
     with pytest.raises(ValueError):
         validate_config("hermite", 3, 2, 1, 1.5, 5)
+    with pytest.raises(ValueError, match="dmd_history"):
+        validate_config("dmd", 3, 2, 1, 0.5, 3)
+    with pytest.raises(ValueError, match="dmd_history"):
+        validate_config("auto", 3, 2, 1, 0.5, 4)
 
 
 def test_skips_steps_on_decreasing_trellis_schedule():
@@ -74,6 +78,48 @@ def test_split_cfg_routes_two_states():
     assert patch.skipped_steps > 0
     assert patch.computed_steps + patch.skipped_steps == 50
     assert dit.calls < 50            # genuinely skipped DiT forwards
+
+
+def test_explicit_run_and_branch_identity_isolation_for_same_timestep_retry():
+    """An integration that knows job/CFG identity can disambiguate equal t."""
+    dit = DummyDiT()
+    patch = HiCacheModelPatch(dit, method="hermite", interval=3, warmup_steps=1)
+    t0 = torch.tensor([1000.0])
+    x = torch.zeros(1, 8)
+
+    patch(x, t0, hicache_run_id="run-a", hicache_branch_id="cond")
+    assert patch.run_id == "run-a"
+    assert patch.branch_id == "cond"
+    patch(x, t0, hicache_run_id="run-a", hicache_branch_id="uncond")
+    assert patch.branch_id == "uncond"
+    assert patch.telemetry["branches"]["cond"]["decisions"]["full"] == 1
+    assert patch.telemetry["branches"]["uncond"]["decisions"]["full"] == 1
+
+    # A new retry with the same one-step t=0-equivalent timestep must not inherit
+    # either CFG branch's anchor or counter.
+    patch(x, t0, hicache_run_id="run-b", hicache_branch_id="cond")
+    assert patch.run_id == "run-b"
+    assert patch.computed_steps == 1 and patch.skipped_steps == 0
+    assert dit.calls == 3
+
+
+def test_telemetry_reports_fallbacks_and_is_detached():
+    dit = DummyDiT()
+    patch = HiCacheModelPatch(dit, method="dmd", interval=3,
+                              warmup_steps=2, dmd_history=4,
+                              stage_id="slat_flow_model")
+    for t in _trellis_t_seq(35):
+        patch(torch.zeros(1, 8), t)
+    telemetry = patch.telemetry
+    assert telemetry["run_id"] == patch.run_id
+    assert telemetry["stage_id"] == "slat_flow_model"
+    assert telemetry["cfg_mode"] == "split_or_single"
+    assert telemetry["method_counts"]["hermite"] > 0
+    assert telemetry["method_counts"]["dmd"] > 0
+    assert sum(telemetry["fallbacks"].values()) > 0
+    # Central hicache telemetry is returned detached from the live state.
+    telemetry["decisions"]["full"] = -1
+    assert patch.telemetry["decisions"]["full"] >= 1
 
 
 def test_new_run_resets_on_direction_reversal():
@@ -198,3 +244,11 @@ def test_stages_selector():
     ss = apply_hicache(p, stages="sparse_structure")
     assert getattr(ss.models["sparse_structure_flow_model"], "_hicache_is_patch", False)
     assert not getattr(ss.models["slat_flow_model"], "_hicache_is_patch", False)
+
+    slat = apply_hicache(p, stages="slat")
+    assert not getattr(slat.models["sparse_structure_flow_model"], "_hicache_is_patch", False)
+    assert slat.models["slat_flow_model"].stage_id == "slat_flow_model"
+
+    both = apply_hicache(p, stages="both")
+    assert both.models["sparse_structure_flow_model"].stage_id == "sparse_structure_flow_model"
+    assert both.models["slat_flow_model"].stage_id == "slat_flow_model"

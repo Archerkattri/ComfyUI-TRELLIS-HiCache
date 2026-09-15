@@ -38,7 +38,14 @@ forecast states and routes each forward to the right one. The SLaT stage returns
 sparse tensor whose active-voxel layout is fixed during a run, so the forecast
 runs on its `.feats` and the sparse tensor is rebuilt from the last computed step.
 
-## Measured (RTX 5090, TRELLIS-image-large, demo image, 25+25 steps)
+## Historical measured result (not reproduced by this CPU gate)
+
+The following table is README-reported evidence from an earlier RTX 5090 run;
+it is not a current-commit or release claim. Re-run the GPU gate below with a
+fixed input, seed, checkpoint, and synchronized timing before using these
+figures.
+
+Setup: TRELLIS-image-large, demo image, 25+25 steps.
 
 | config | speedup | Chamfer vs stock (unit-cube units) |
 |---|---|---|
@@ -70,11 +77,42 @@ Set `enabled = Off` to bypass and restore the stock DiTs. The node never mutates
 the pipeline it is given (copy-on-patch), so a cached node output always owns its
 own configuration.
 
+## First-result acceptance checklist
+
+Use a fixed small input and record the ComfyUI, smthemex wrapper, TRELLIS
+checkpoint, node commit, seed, method, interval, stages, and torch/CUDA
+versions. Treat a run as accepted only after these checks:
+
+* Run a baseline with `enabled = Off` and retain the output and stock forward
+  counts.
+* Run the same input and seed with acceleration enabled. If the host can pass
+  identity markers, pass `hicache_run_id` and `hicache_branch_id` to the patched
+  model; the markers are consumed by the wrapper and never forwarded to the
+  DiT. Inspect each stage patch's `run_id`, `stage_id`, `branch_id`, and
+  `telemetry` for actual full/forecast, method, and fallback counts.
+* Cover both stages, sparse-only, and SLaT-only. For SLaT, confirm skipped
+  outputs remain sparse tensors with the same active layout.
+* Retry with a fresh run ID and the same initial timestep; confirm the first
+  decision is full and no prior branch/template is reused. The legacy stock
+  sampler path remains supported: repeated timesteps are interpreted as its
+  unconditional CFG call, while explicit IDs disambiguate retries.
+* Compare baseline and accelerated outputs, and retain raw per-run telemetry.
+  GPU timing/quality and a clean-host smthemex workflow import are separate
+  gates; this package's CPU tests make no speed or quality claim.
+
 ## Validation
 
 `tests/test_patch.py` unit-tests the patch logic with a dummy DiT (no ComfyUI, no
-GPU). `tests/validate_gpu.py` is the end-to-end GPU check that produced the table
-above (loads a real TRELLIS pipeline, applies the patch, compares geometry and
-wall-clock against stock).
+GPU). `tests/validate_gpu.py` is the future end-to-end GPU check (loads a real
+TRELLIS pipeline, applies the patch, compares geometry and wall-clock against
+stock); it is not run by this CPU packet. No accepted smthemex workflow JSON is
+present in the checkout, so an invented graph is not included.
 
 Apache-2.0.
+
+## Current release status
+
+The current adapter includes the shared HiCache++ runtime bridge, explicit
+cache identity, timing and fallback accounting. Its CPU contract suite passes
+15 tests. Real TRELLIS model/CUDA workflow and output-quality comparisons
+remain unmeasured.
