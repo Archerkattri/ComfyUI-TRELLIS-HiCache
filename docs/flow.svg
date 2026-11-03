@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 450" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="450" viewBox="0 0 1200 450" role="img" aria-labelledby="title desc">
   <title id="title">TRELLIS HiCache: isolated two-stage acceleration</title>
   <desc id="desc">Sparse-structure and SLaT maintain independent schedules, histories, fallbacks, and reports.</desc>
   <rect width="1200" height="450" rx="22" fill="#020617"/>
